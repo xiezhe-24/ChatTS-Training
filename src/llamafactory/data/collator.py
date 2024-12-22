@@ -18,6 +18,7 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Sequence
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from transformers import DataCollatorForSeq2Seq
@@ -233,4 +234,99 @@ class KTODataCollatorWithPadding(MultiModalDataCollatorForSeq2Seq):
             batch["kl_token_type_ids"] = kl_batch["token_type_ids"]
 
         batch["kto_tags"] = torch.tensor(kto_tags)
+        return batch
+
+@dataclass
+class DataCollatorForSeq2SeqWithTimeSeries(DataCollatorForSeq2Seq):
+    def __call__(self, features, return_tensors=None):
+        if return_tensors is None:
+            return_tensors = self.return_tensors
+
+        label_name = "label" if "label" in features[0].keys() else "labels"
+        labels = [feature[label_name] for feature in features] if label_name in features[0].keys() else None
+        if labels is not None and all(label is None for label in labels):
+            labels = None
+        non_labels_features = [{k: v for k, v in feature.items() if k != label_name} for feature in features]
+
+        # Separate time series features from others
+        time_series_features = []
+        for feature in non_labels_features:
+            if 'timeseries' not in feature:
+                continue
+            for ts in feature['timeseries']:
+                time_series_features.append(np.array([ts]))
+        other_features = [{k: v for k, v in feature.items() if k != "timeseries"} for feature in non_labels_features]
+
+        # Pad other features
+        batch = pad_without_fast_tokenizer_warning(
+            self.tokenizer,
+            other_features,
+            padding=self.padding,
+            max_length=self.max_length,
+            pad_to_multiple_of=self.pad_to_multiple_of,
+            return_tensors=return_tensors,
+        )
+
+        # Concatenate time series features
+        max_length = max(arr.shape[1] for arr in time_series_features)
+        # print(f"{max_length=}")
+        # print([arr.shape for arr in time_series_features])
+        padded_time_series_features = [
+            np.pad(arr, ((0, 0), (0, max_length - arr.shape[1]), (0, 0)), mode='constant', constant_values=0)
+            for arr in time_series_features
+        ]
+        concatenated_time_series = np.concatenate(padded_time_series_features, axis=0)
+        # print(f"[DEBUG] arr.shape={[arr.shape[1] for arr in time_series_features]}, {concatenated_time_series.shape=}")
+
+        batch["timeseries"] = torch.tensor(concatenated_time_series, dtype=torch.float32)
+
+        # Process labels if available
+        no_padding = self.padding is False or self.padding == PaddingStrategy.DO_NOT_PAD
+        if labels is not None:
+            if no_padding:
+                if isinstance(features[0][label_name], list):
+                    batch["labels"] = list(labels)
+                else:
+                    batch["labels"] = [np.concatenate([label, []]) for label in labels]
+            else:
+                max_padding = self.padding == PaddingStrategy.MAX_LENGTH and self.max_length is not None
+                max_label_length = max(len(l) for l in labels) if not max_padding else self.max_length
+                if self.pad_to_multiple_of is not None:
+                    max_label_length = (
+                        (max_label_length + self.pad_to_multiple_of - 1)
+                        // self.pad_to_multiple_of
+                        * self.pad_to_multiple_of
+                    )
+
+                padding_side = self.tokenizer.padding_side
+                if isinstance(features[0][label_name], list):
+                    batch["labels"] = [
+                        label + [self.label_pad_token_id] * (max_label_length - len(label))
+                        if padding_side == "right"
+                        else [self.label_pad_token_id] * (max_label_length - len(label)) + label
+                        for label in labels
+                    ]
+                else:
+                    batch["labels"] = [
+                        np.concatenate([label, [self.label_pad_token_id] * (max_label_length - len(label))])
+                        if padding_side == "right"
+                        else np.concatenate([[self.label_pad_token_id] * (max_label_length - len(label)), label])
+                        for label in labels
+                    ]
+
+        if batch.get("labels", None) is not None:
+            if return_tensors == "pt":
+                batch["labels"] = torch.tensor(batch["labels"], dtype=torch.int64)
+            elif return_tensors == "tf":
+                import tensorflow as tf
+                batch["labels"] = tf.constant(batch["labels"], dtype=tf.int64)
+            else:
+                batch["labels"] = np.array(batch["labels"], dtype=np.int64)
+        else:
+            batch["labels"] = None
+
+        if labels is not None and self.model is not None and hasattr(self.model, "prepare_decoder_input_ids_from_labels"):
+            decoder_input_ids = self.model.prepare_decoder_input_ids_from_labels(labels=batch["labels"])
+            batch["decoder_input_ids"] = decoder_input_ids
+
         return batch

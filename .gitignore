@@ -173,3 +173,5 @@ output/
 wandb/
 swanlog/
 generated_predictions.jsonl
+.DS_Store
+__pycache__

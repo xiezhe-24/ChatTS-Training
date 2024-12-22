@@ -364,6 +364,10 @@ class FinetuningArguments(
         default=True,
         metadata={"help": "Whether ot not to freeze vision tower in MLLM training."},
     )
+    freeze_ts_encoder: bool = field(
+        default=True,
+        metadata={"help": "Whether ot not to freeze time series encoder in MLLM training."},
+    )
     train_mm_proj_only: bool = field(
         default=False,
         metadata={"help": "Whether or not to train the multimodal projector for MLLM only."},

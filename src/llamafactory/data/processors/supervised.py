@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple
 from ...extras import logging
 from ...extras.constants import IGNORE_INDEX
 from .processor_utils import greedy_knapsack, infer_seqlen
+import torch
 
 
 if TYPE_CHECKING:
@@ -97,6 +98,10 @@ def preprocess_supervised_dataset(
     # build inputs with format `<bos> X Y <eos>` and labels with format `<ignore> ... <ignore> Y <eos>`
     # for multiturn examples, we only mask the prompt part in each prompt-response pair.
     model_inputs = defaultdict(list)
+
+    if '_timeseries' in examples:
+        model_inputs["timeseries"] = []
+
     for i in range(len(examples["_prompt"])):
         if len(examples["_prompt"][i]) % 2 != 1 or len(examples["_response"][i]) != 1:
             logger.warning_rank0(
@@ -123,6 +128,13 @@ def preprocess_supervised_dataset(
         model_inputs["labels"].append(labels)
         model_inputs["images"].append(examples["_images"][i])
         model_inputs["videos"].append(examples["_videos"][i])
+        if '_timeseries' in examples:
+            ts_tensor_list = []
+            if examples['_timeseries'][i] is not None:
+                for ts in examples['_timeseries'][i]:
+                    ts_tensor_list.append(torch.tensor(ts))
+            model_inputs['timeseries'].append(ts_tensor_list)
+            print("Time Series Input Enabled!")
 
     return model_inputs
 

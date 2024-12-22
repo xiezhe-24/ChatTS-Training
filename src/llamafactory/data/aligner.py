@@ -130,6 +130,7 @@ def convert_alpaca(
         "_tools": example[dataset_attr.tools] if dataset_attr.tools else "",
         "_images": convert_images(example[dataset_attr.images]) if dataset_attr.images else None,
         "_videos": convert_videos(example[dataset_attr.videos]) if dataset_attr.videos else None,
+        "_timeseries": example[dataset_attr.timeseries] if dataset_attr.timeseries else None,
     }
     return output
 
@@ -223,6 +224,7 @@ def convert_sharegpt(
         "_tools": example[dataset_attr.tools] if dataset_attr.tools else "",
         "_images": convert_images(example[dataset_attr.images]) if dataset_attr.images else None,
         "_videos": convert_videos(example[dataset_attr.videos]) if dataset_attr.videos else None,
+        "_timeseries": example[dataset_attr.timeseries] if dataset_attr.timeseries else None,
     }
     return output
 
@@ -241,6 +243,7 @@ def align_dataset(
         _tools: "...",
         _images: [],
         _videos: [],
+        _timeseries: []
     """
     if dataset_attr.formatting == "alpaca":
         convert_func = partial(convert_alpaca, dataset_attr=dataset_attr, data_args=data_args)
