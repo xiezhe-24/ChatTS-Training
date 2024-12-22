@@ -20,8 +20,10 @@ from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Sequence
 
 import numpy as np
 import torch
+from transformers import DataCollatorForSeq2Seq, PreTrainedTokenizerBase, DataCollatorForLanguageModeling
+from transformers.utils import PaddingStrategy
+from transformers.data.data_collator import pad_without_fast_tokenizer_warning
 import torch.nn.functional as F
-from transformers import DataCollatorForSeq2Seq
 
 from ..extras.constants import IGNORE_INDEX, IMAGE_PLACEHOLDER
 from ..extras.packages import is_pillow_available
@@ -255,7 +257,7 @@ class DataCollatorForSeq2SeqWithTimeSeries(DataCollatorForSeq2Seq):
                 continue
             for ts in feature['timeseries']:
                 time_series_features.append(np.array([ts]))
-        other_features = [{k: v for k, v in feature.items() if k != "timeseries"} for feature in non_labels_features]
+        other_features = [{k: v for k, v in feature.items() if k not in ['timeseries', 'images', 'videos']} for feature in non_labels_features]
 
         # Pad other features
         batch = pad_without_fast_tokenizer_warning(
