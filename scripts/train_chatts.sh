@@ -1,14 +1,14 @@
 DEEPSPEED_TIMEOUT=120 deepspeed --num_gpus 8 --master_port=19901 src/train.py \
     --deepspeed ds_config/ds_config_3.json \
     --stage sft \
-    --model_name_or_path "/mnt/tenant-home_speed/xz/opsfm-xz/sft_checkpoint/xz/qwen2.5-ts-sp-stage1-1119/checkpoint-400" \
+    --model_name_or_path "[BASE_MODEL_PATH]" \
     --dataset "chatts_dev" \
     --interleave_probs "1.0" \
     --do_train \
     --mix_strategy "interleave_over" \
     --template "qwen"  \
     --finetuning_type full \
-    --output_dir "/mnt/tenant-home_speed/xz/sft_checkpoint/qwen2.5-ts-sp-chatts-dev" \
+    --output_dir "[MODEL_OUTPUT_PATH]" \
     --overwrite_output_dir \
     --per_device_train_batch_size 2 \
     --gradient_accumulation_steps 32 \
