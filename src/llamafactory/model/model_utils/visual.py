@@ -143,6 +143,10 @@ def get_forbidden_modules(config: "PretrainedConfig", finetuning_args: "Finetuni
         elif finetuning_args.freeze_vision_tower:
             forbidden_modules.add("visual")
 
+    elif model_type == "qwen2":
+        if finetuning_args.freeze_ts_encoder:
+            forbidden_modules.add("ts_encoder")
+
     return forbidden_modules
 
 
