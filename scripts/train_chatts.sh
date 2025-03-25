@@ -24,6 +24,7 @@ DEEPSPEED_TIMEOUT=120 deepspeed --num_gpus 8 --master_port=19901 src/train.py \
     --save_only_model \
     --save_safetensors False \
     --preprocessing_num_workers 96 \
+    --trust_remote_code True \
     --ts_inputs \
     --freeze_ts_encoder False \
     --cutoff_len 3000
