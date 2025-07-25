@@ -85,7 +85,7 @@ class DatasetConverter:
 class AlpacaDatasetConverter(DatasetConverter):
     def __call__(self, example: dict[str, Any]) -> dict[str, Any]:
         prompt = []
-        print(f"[AlpacaDatasetConverter] Converting... {self.dataset_attr.history=}, {self.dataset_attr.prompt=}, {self.dataset_attr.query=}, {self.dataset_attr.response=}, {self.dataset_attr.kto_tag=}, {self.dataset_attr.chosen=}, {self.dataset_attr.rejected=}")
+        # print(f"[AlpacaDatasetConverter] Converting... {self.dataset_attr.history=}, {self.dataset_attr.prompt=}, {self.dataset_attr.query=}, {self.dataset_attr.response=}, {self.dataset_attr.kto_tag=}, {self.dataset_attr.chosen=}, {self.dataset_attr.rejected=}")
         if self.dataset_attr.history and isinstance(example[self.dataset_attr.history], list):
             for old_prompt, old_response in example[self.dataset_attr.history]:
                 prompt.append({"role": Role.USER.value, "content": old_prompt})
@@ -120,7 +120,7 @@ class AlpacaDatasetConverter(DatasetConverter):
         else:  # unsupervised
             response = []
 
-        print(f"[converter] {self.dataset_attr.images=}, {self.dataset_attr.videos=}, {self.dataset_attr.audios=}, {self.dataset_attr.timeseries=}")
+        # print(f"[converter] {self.dataset_attr.images=}, {self.dataset_attr.videos=}, {self.dataset_attr.audios=}, {self.dataset_attr.timeseries=}")
 
         output = {
             "_prompt": prompt,
@@ -219,7 +219,7 @@ class SharegptDatasetConverter(DatasetConverter):
             prompt = aligned_messages[:-1]
             response = aligned_messages[-1:]
 
-        print(f"[converter] {self.dataset_attr.images=}, {self.dataset_attr.videos=}, {self.dataset_attr.audios=}, {self.dataset_attr.timeseries=}")
+        # print(f"[converter] {self.dataset_attr.images=}, {self.dataset_attr.videos=}, {self.dataset_attr.audios=}, {self.dataset_attr.timeseries=}")
 
         output = {
             "_prompt": prompt,
@@ -285,7 +285,7 @@ def align_dataset(
         )
 
     dataset_converter = get_dataset_converter(dataset_attr.formatting, dataset_attr, data_args)
-    print(f"[align_dataset] Using dataset converter: {dataset_converter.__class__.__name__}, remove_colums={column_names}")
+    # print(f"[align_dataset] Using dataset converter: {dataset_converter.__class__.__name__}, remove_colums={column_names}")
     return dataset.map(
         dataset_converter,
         batched=False,

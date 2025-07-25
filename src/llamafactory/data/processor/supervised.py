@@ -100,9 +100,6 @@ class SupervisedDatasetProcessor(DatasetProcessor):
                 )
                 continue
 
-            # print(f"[examples]", examples)
-            # print(list(examples.keys()))
-
             input_ids, labels = self._encode_data_example(
                 prompt=examples["_prompt"][i],
                 response=examples["_response"][i],
@@ -119,6 +116,7 @@ class SupervisedDatasetProcessor(DatasetProcessor):
             model_inputs["images"].append(examples["_images"][i])
             model_inputs["videos"].append(examples["_videos"][i])
             model_inputs["audios"].append(examples["_audios"][i])
+            model_inputs["timeseries"].append(examples["_timeseries"][i])
 
         return model_inputs
 

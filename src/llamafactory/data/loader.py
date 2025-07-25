@@ -315,9 +315,11 @@ def get_dataset(
         )
 
     with training_args.main_process_first(desc="pre-process dataset", local=(not data_args.data_shared_file_system)):
+        print(f"[before _get_preprocessed_dataset] dataset columns: {dataset.column_names if dataset is not None else None}")
         dataset = _get_preprocessed_dataset(
             dataset, data_args, training_args, stage, template, tokenizer, processor, is_eval=False
         )
+        print(f"[after _get_preprocessed_dataset] dataset columns: {dataset.column_names if dataset is not None else None}")
         if isinstance(eval_dataset, dict):
             for eval_name, eval_data in eval_dataset.items():
                 eval_dataset[eval_name] = _get_preprocessed_dataset(

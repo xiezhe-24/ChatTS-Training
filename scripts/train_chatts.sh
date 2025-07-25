@@ -2,7 +2,7 @@ NCCL_DEBUG=WARN DEEPSPEED_TIMEOUT=120 deepspeed --num_gpus 8 --master_port=19901
     --deepspeed ds_config/ds_config_3.json \
     --stage sft \
     --model_name_or_path "/mnt/bn/mllmhl/Project/opsfm/models/Qwen2.5-14B-TS-naive-ps16-sp" \
-    --dataset "uts_template_256_no,uts_llm_256_no,mts_shape_template_256_no,mts_shape_llm_256_no,mts_local_template_256_no,mts_local_llm_256_no,ift_256_no" \
+    --dataset "uts_template_no,uts_llm_no,mts_shape_template_no,mts_shape_llm_no,mts_local_template_no,mts_local_llm_no,ift_no" \
     --interleave_probs "0.15,0.15,0.15,0.15,0.15,0.15,0.1" \
     --do_train \
     --mix_strategy "interleave_over" \
