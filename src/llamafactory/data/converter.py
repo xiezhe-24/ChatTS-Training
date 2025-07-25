@@ -85,6 +85,7 @@ class DatasetConverter:
 class AlpacaDatasetConverter(DatasetConverter):
     def __call__(self, example: dict[str, Any]) -> dict[str, Any]:
         prompt = []
+        print(f"[AlpacaDatasetConverter] Converting... {self.dataset_attr.history=}, {self.dataset_attr.prompt=}, {self.dataset_attr.query=}, {self.dataset_attr.response=}, {self.dataset_attr.kto_tag=}, {self.dataset_attr.chosen=}, {self.dataset_attr.rejected=}")
         if self.dataset_attr.history and isinstance(example[self.dataset_attr.history], list):
             for old_prompt, old_response in example[self.dataset_attr.history]:
                 prompt.append({"role": Role.USER.value, "content": old_prompt})
@@ -119,6 +120,8 @@ class AlpacaDatasetConverter(DatasetConverter):
         else:  # unsupervised
             response = []
 
+        print(f"[converter] {self.dataset_attr.images=}, {self.dataset_attr.videos=}, {self.dataset_attr.audios=}, {self.dataset_attr.timeseries=}")
+
         output = {
             "_prompt": prompt,
             "_response": response,
@@ -127,6 +130,7 @@ class AlpacaDatasetConverter(DatasetConverter):
             "_images": self._find_medias(example[self.dataset_attr.images]) if self.dataset_attr.images else None,
             "_videos": self._find_medias(example[self.dataset_attr.videos]) if self.dataset_attr.videos else None,
             "_audios": self._find_medias(example[self.dataset_attr.audios]) if self.dataset_attr.audios else None,
+            "_timeseries": example[self.dataset_attr.timeseries] if self.dataset_attr.timeseries else None,
         }
         return output
 
@@ -215,6 +219,8 @@ class SharegptDatasetConverter(DatasetConverter):
             prompt = aligned_messages[:-1]
             response = aligned_messages[-1:]
 
+        print(f"[converter] {self.dataset_attr.images=}, {self.dataset_attr.videos=}, {self.dataset_attr.audios=}, {self.dataset_attr.timeseries=}")
+
         output = {
             "_prompt": prompt,
             "_response": response,
@@ -223,6 +229,7 @@ class SharegptDatasetConverter(DatasetConverter):
             "_images": self._find_medias(example[self.dataset_attr.images]) if self.dataset_attr.images else None,
             "_videos": self._find_medias(example[self.dataset_attr.videos]) if self.dataset_attr.videos else None,
             "_audios": self._find_medias(example[self.dataset_attr.audios]) if self.dataset_attr.audios else None,
+            "_timeseries": self._find_medias(example[self.dataset_attr.timeseries]) if self.dataset_attr.timeseries else None,
         }
         return output
 
@@ -265,8 +272,10 @@ def align_dataset(
     _images: []
     _videos: []
     _audios: []
+    _timeseries: []
     """
-    column_names = list(next(iter(dataset)).keys())
+    # print(f"[align_dataset] {dataset_attr=}, {dataset_attr.images=}, {dataset_attr.videos=}, {dataset_attr.audios=}, {dataset_attr.timeseries=}")
+    column_names = set(next(iter(dataset)).keys()) 
     kwargs = {}
     if not data_args.streaming:
         kwargs = dict(
@@ -276,6 +285,7 @@ def align_dataset(
         )
 
     dataset_converter = get_dataset_converter(dataset_attr.formatting, dataset_attr, data_args)
+    print(f"[align_dataset] Using dataset converter: {dataset_converter.__class__.__name__}, remove_colums={column_names}")
     return dataset.map(
         dataset_converter,
         batched=False,

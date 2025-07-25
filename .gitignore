@@ -1,3 +1,8 @@
+.DS_Store
+__pycache__
+models
+sft_checkpoints
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

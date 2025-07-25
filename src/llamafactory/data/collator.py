@@ -106,18 +106,21 @@ class MultiModalDataCollatorForSeq2Seq(DataCollatorForSeq2Seq):
             self.get_rope_func = None
 
     def __call__(self, features: list[dict[str, Any]]) -> dict[str, "torch.Tensor"]:
-        batch_images, batch_videos, batch_audios = [], [], []
-        batch_imglens, batch_vidlens, batch_audlens, batch_input_ids = [], [], [], []
+        batch_images, batch_videos, batch_audios, batch_timeseries = [], [], [], []
+        batch_imglens, batch_vidlens, batch_audlens, batch_tslens, batch_input_ids = [], [], [], [], []
         for feature in features:
             images = feature.pop("images", None) or []
             videos = feature.pop("videos", None) or []
             audios = feature.pop("audios", None) or []
+            timeseries = feature.pop("timeseries", None) or []
             batch_images.extend(images)
             batch_videos.extend(videos)
             batch_audios.extend(audios)
+            batch_timeseries.extend(timeseries)
             batch_imglens.append(len(images))
             batch_vidlens.append(len(videos))
             batch_audlens.append(len(audios))
+            batch_tslens.append(len(timeseries))
             batch_input_ids.append(feature["input_ids"])
 
         fake_input_ids = []
@@ -165,16 +168,31 @@ class MultiModalDataCollatorForSeq2Seq(DataCollatorForSeq2Seq):
 
             batch_input_ids[0] = features[0]["input_ids"]
 
-        mm_inputs = self.template.mm_plugin.get_mm_inputs(
-            batch_images,
-            batch_videos,
-            batch_audios,
-            batch_imglens,
-            batch_vidlens,
-            batch_audlens,
-            batch_input_ids,
-            self.processor,
-        )
+        if self.template.mm_plugin.timeseries_token is not None:
+            # Enable ChatTS
+            mm_inputs = self.template.mm_plugin.get_mm_inputs(
+                batch_images,
+                batch_videos,
+                batch_audios,
+                batch_imglens,
+                batch_vidlens,
+                batch_audlens,
+                batch_input_ids,
+                self.processor,
+                timeseries=batch_timeseries
+            )
+        else:
+            mm_inputs = self.template.mm_plugin.get_mm_inputs(
+                batch_images,
+                batch_videos,
+                batch_audios,
+                batch_imglens,
+                batch_vidlens,
+                batch_audlens,
+                batch_input_ids,
+                self.processor
+            )
+
         if "token_type_ids" in mm_inputs:
             token_type_ids = mm_inputs.pop("token_type_ids")
             for i, feature in enumerate(features):

@@ -43,6 +43,7 @@ class DatasetAttr:
     images: Optional[str] = None
     videos: Optional[str] = None
     audios: Optional[str] = None
+    timeseries: Optional[str] = None
     # dpo columns
     chosen: Optional[str] = None
     rejected: Optional[str] = None
@@ -79,7 +80,7 @@ class DatasetAttr:
 
         if "columns" in attr:
             column_names = ["prompt", "query", "response", "history", "messages", "system", "tools"]
-            column_names += ["images", "videos", "audios", "chosen", "rejected", "kto_tag"]
+            column_names += ["images", "videos", "audios", "timeseries", "chosen", "rejected", "kto_tag"]
             for column_name in column_names:
                 self.set_attr(column_name, attr["columns"])
 

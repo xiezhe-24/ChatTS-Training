@@ -142,6 +142,7 @@ class MMPluginMixin:
     image_token: Optional[str]
     video_token: Optional[str]
     audio_token: Optional[str]
+    timeseries_token: Optional[str]
     expand_mm_tokens: bool = True
 
     def _validate_input(
@@ -428,6 +429,7 @@ class BasePlugin(MMPluginMixin):
         audlens: list[int],
         batch_ids: list[list[int]],
         processor: Optional["MMProcessor"],
+        timeseries: Optional[list] = None
     ) -> dict[str, Union[list[int], "torch.Tensor"]]:
         r"""Build batched multimodal inputs for VLMs.
 
@@ -1868,6 +1870,43 @@ class VideoLlavaPlugin(BasePlugin):
 
         return messages
 
+@dataclass
+class ChatTSPlugin(BasePlugin):
+    @override
+    def get_mm_inputs(
+        self,
+        images: list["ImageInput"],
+        videos: list["VideoInput"],
+        audios: list["AudioInput"],
+        imglens: list[int],
+        vidlens: list[int],
+        audlens: list[int],
+        batch_ids: list[list[int]],
+        processor: "MMProcessor",
+        timeseries: Optional[list] = None,
+    ) -> dict[str, "torch.Tensor"]:
+        mm_inputs = {"timeseries": processor.encode_timeseries(timeseries)}
+        return mm_inputs
+
+    @override
+    def process_messages(
+        self,
+        messages: list[dict[str, str]],
+        images: list["ImageInput"],
+        videos: list["VideoInput"],
+        audios: list["AudioInput"],
+        processor,
+        timeseries: Optional[list] = None
+    ) -> list[dict[str, str]]:
+        # We do not validate the input in the time series plugin, because it is not implemented at this time
+        messages = deepcopy(messages)
+        text = [message["content"] for message in messages if "content" in message]
+        processed_output = processor(text=text, timeseries=timeseries, tokenize=False)
+        for i, message in enumerate(messages):
+            message["content"] = processed_output["text"][i]
+
+        return messages
+
 
 PLUGINS = {
     "base": BasePlugin,
@@ -1888,6 +1927,7 @@ PLUGINS = {
     "qwen2_omni": Qwen2OmniPlugin,
     "qwen2_vl": Qwen2VLPlugin,
     "video_llava": VideoLlavaPlugin,
+    "chatts": ChatTSPlugin,
 }
 
 
@@ -1904,9 +1944,10 @@ def get_mm_plugin(
     image_token: Optional[str] = None,
     video_token: Optional[str] = None,
     audio_token: Optional[str] = None,
+    timeseries_token: Optional[str] = None,
 ) -> "BasePlugin":
     r"""Get plugin for multimodal inputs."""
     if name not in PLUGINS:
         raise ValueError(f"Multimodal plugin `{name}` not found.")
 
-    return PLUGINS[name](image_token, video_token, audio_token)
+    return PLUGINS[name](image_token, video_token, audio_token, timeseries_token)

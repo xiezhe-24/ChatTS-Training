@@ -1,0 +1,28 @@
+NCCL_DEBUG=WARN DEEPSPEED_TIMEOUT=120 deepspeed --num_gpus 8 --master_port=19901 src/train.py \
+    --deepspeed ds_config/ds_config_3.json \
+    --stage sft \
+    --model_name_or_path "/mnt/bn/mllmhl/Project/opsfm/models/Qwen2.5-14B-TS-naive-ps16-sp" \
+    --dataset "uts_template_256_no,uts_llm_256_no,mts_shape_template_256_no,mts_shape_llm_256_no,mts_local_template_256_no,mts_local_llm_256_no,ift_256_no" \
+    --interleave_probs "0.15,0.15,0.15,0.15,0.15,0.15,0.1" \
+    --do_train \
+    --mix_strategy "interleave_over" \
+    --template "chatts"  \
+    --finetuning_type full \
+    --output_dir "/mnt/bn/mllmhl/sft_checkpoints/ChatTS-14B-0725-ps16" \
+    --overwrite_output_dir \
+    --per_device_train_batch_size 2 \
+    --gradient_accumulation_steps 32 \
+    --lr_scheduler_type cosine \
+    --logging_steps 1 \
+    --save_steps 200 \
+    --learning_rate 1e-5 \
+    --warmup_ratio 0.02 \
+    --num_train_epochs 0 \
+    --max_steps 1000 \
+    --plot_loss \
+    --fp16 \
+    --save_only_model \
+    --save_safetensors False \
+    --preprocessing_num_workers 96 \
+    --trust_remote_code True \
+    --cutoff_len 4000

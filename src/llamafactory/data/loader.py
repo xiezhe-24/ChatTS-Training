@@ -159,6 +159,8 @@ def _load_single_dataset(
         max_samples = min(data_args.max_samples, len(dataset))
         dataset = dataset.select(range(max_samples))
 
+    # print("_load_single_dataset", dataset[0])
+
     return align_dataset(dataset, dataset_attr, data_args, training_args)
 
 
@@ -180,6 +182,7 @@ def _get_merged_dataset(
             raise ValueError("The dataset is not applicable in the current training stage.")
 
         datasets[dataset_name] = _load_single_dataset(dataset_attr, model_args, data_args, training_args)
+        # print("_get_merged_dataset", datasets[dataset_name][0])
 
     if return_dict:
         return datasets
