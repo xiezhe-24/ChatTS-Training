@@ -1,24 +1,24 @@
 NCCL_DEBUG=WARN DEEPSPEED_TIMEOUT=120 deepspeed --num_gpus 8 --master_port=19901 src/train.py \
     --deepspeed ds_config/ds_config_3.json \
     --stage sft \
-    --model_name_or_path "/mnt/bn/mllmhl/Project/opsfm/models/Qwen2.5-14B-TS-naive-ps16-sp" \
-    --dataset "uts_template_no,uts_llm_no,mts_shape_template_no,mts_shape_llm_no,mts_local_template_no,mts_local_llm_no,ift_no" \
-    --interleave_probs "0.15,0.15,0.15,0.15,0.15,0.15,0.1" \
+    --model_name_or_path "/mnt/bn/chatts/sft_checkpoints/ChatTS-14B-0730-stage3/checkpoint-400" \
+    --dataset "llm_uts_reason_cn_1500_no,ift_None_1226_no,rewrite_reason_cn_10000_no,ift_local_mts_256_no,llm_mts_reason_600_no,llm_uts_reason_600_no,rewrite_reason_20000_no" \
+    --interleave_probs "0.2,0.15,0.2,0.1,0.1,0.1,0.15" \
     --do_train \
     --mix_strategy "interleave_over" \
     --template "chatts"  \
     --finetuning_type full \
-    --output_dir "/mnt/bn/mllmhl/sft_checkpoints/ChatTS-14B-0725-ps16" \
+    --output_dir "/mnt/bn/chatts/sft_checkpoints/ChatTS-14B-0731-stage4" \
     --overwrite_output_dir \
     --per_device_train_batch_size 2 \
     --gradient_accumulation_steps 32 \
     --lr_scheduler_type cosine \
     --logging_steps 1 \
-    --save_steps 200 \
-    --learning_rate 1e-5 \
+    --save_steps 100 \
+    --learning_rate 3e-6 \
     --warmup_ratio 0.02 \
     --num_train_epochs 0 \
-    --max_steps 1000 \
+    --max_steps 600 \
     --plot_loss \
     --fp16 \
     --save_only_model \
