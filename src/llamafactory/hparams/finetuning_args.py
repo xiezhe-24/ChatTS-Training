@@ -436,6 +436,15 @@ class FinetuningArguments(
         default=False,
         metadata={"help": "Whether or not to freeze the language model in MLLM training."},
     )
+    train_timeseries_modules: bool = field(
+        default=True,
+        metadata={
+            "help": (
+                "Whether or not to fine-tune auxiliary time-series modules (e.g. `ts_encoder`) "
+                "when they are available."
+            )
+        },
+    )
     compute_accuracy: bool = field(
         default=False,
         metadata={"help": "Whether or not to compute the token-level accuracy at evaluation."},

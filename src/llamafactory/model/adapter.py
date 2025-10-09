@@ -22,6 +22,7 @@ from transformers.integrations import is_deepspeed_zero3_enabled
 from ..extras import logging
 from .model_utils.misc import find_all_linear_modules, find_expanded_modules
 from .model_utils.quantization import QuantizationMethod
+from .model_utils.timeseries import maybe_disable_timeseries_gradients, patch_timeseries_modules_for_lora
 from .model_utils.unsloth import get_unsloth_peft_model, load_unsloth_peft_model
 from .model_utils.visual import COMPOSITE_MODELS, get_forbidden_modules, patch_target_modules
 
@@ -33,6 +34,14 @@ if TYPE_CHECKING:
 
 
 logger = logging.get_logger(__name__)
+
+
+def _log_trainable_param_names(model: "PreTrainedModel") -> None:
+    trainable_params = [name for name, param in model.named_parameters() if param.requires_grad]
+    if trainable_params:
+        logger.info_rank0("Trainable parameters after LoRA setup: {}.".format(",".join(trainable_params)))
+    else:
+        logger.info_rank0("No trainable parameters detected after LoRA setup.")
 
 
 def _setup_full_tuning(
@@ -52,6 +61,8 @@ def _setup_full_tuning(
                 param.data = param.data.to(torch.float32)
         else:
             param.requires_grad_(False)
+
+    maybe_disable_timeseries_gradients(model, finetuning_args)
 
 
 def _setup_freeze_tuning(
@@ -136,6 +147,7 @@ def _setup_freeze_tuning(
             param.requires_grad_(False)
 
     logger.info_rank0("Set trainable layers: {}".format(",".join(trainable_layers)))
+    maybe_disable_timeseries_gradients(model, finetuning_args)
 
 
 def _setup_lora_tuning(
@@ -204,6 +216,7 @@ def _setup_lora_tuning(
             target_modules = find_expanded_modules(model, target_modules, finetuning_args.freeze_trainable_layers)
 
         target_modules = patch_target_modules(model, finetuning_args, target_modules)
+        target_modules = patch_timeseries_modules_for_lora(model, finetuning_args, target_modules)
 
         if (
             finetuning_args.use_dora
@@ -220,8 +233,10 @@ def _setup_lora_tuning(
                 if module in [input_embeddings, output_embeddings]:
                     module_names.add(name.split(".")[-1])
 
-            finetuning_args.additional_target = module_names
-            logger.warning_rank0("Vocab has been resized, add {} to trainable params.".format(",".join(module_names)))
+            finetuning_args.additional_target = list(module_names)
+            logger.warning_rank0(
+                "Vocab has been resized, add {} to trainable params.".format(",".join(module_names))
+            )
 
         peft_kwargs = {
             "r": finetuning_args.lora_rank,
@@ -251,9 +266,14 @@ def _setup_lora_tuning(
             )
             model = get_peft_model(model, lora_config)
 
+    maybe_disable_timeseries_gradients(model, finetuning_args)
+
     if is_trainable and cast_trainable_params_to_fp32:
         for param in filter(lambda p: p.requires_grad, model.parameters()):
             param.data = param.data.to(torch.float32)
+
+    if is_trainable:
+        _log_trainable_param_names(model)
 
     return model
 

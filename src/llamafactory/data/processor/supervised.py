@@ -55,11 +55,16 @@ class SupervisedDatasetProcessor(DatasetProcessor):
 
         for turn_idx, (source_ids, target_ids) in enumerate(encoded_pairs):
             if total_length >= self.data_args.cutoff_len:
+                logger.warning_rank0(
+                    f"Dropped lengthy example with length {total_length} > {self.data_args.cutoff_len}."
+                )
                 break
 
             source_len, target_len = infer_seqlen(
                 len(source_ids), len(target_ids), self.data_args.cutoff_len - total_length
             )
+            if source_len < len(source_ids) or target_len < len(target_ids) or len(timeseries) != list(source_ids).count(151665) or list(target_ids).count(151665) != 0:
+                logger.warning_rank0(f"{source_len=}, {target_len=}, {len(timeseries)=}, {list(source_ids).count(151665)=}, {list(source_ids).count(151666)=}, {list(target_ids).count(151665)=}")
             source_ids = source_ids[:source_len]
             target_ids = target_ids[:target_len]
             total_length += source_len + target_len

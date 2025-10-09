@@ -14,7 +14,7 @@ Make sure that `flash-attention` and `DeepSpeed` are installed.
 1. Put your training data in `data/`.
 2. Set your training data path in `data/dataset_info.json`.
 3. Configure your base model (see the instructions below), output model, training datasets and training parameters in `scripts/train_chatts.sh`.
-4. Run `bash scripts/train_chatts.sh`.
+4. Run `bash scripts/train_chatts.sh` for full SFT. Run `bash scripts/train_lora.sh` for LoRA SFT.
 
 ## Instructions for converting base models (Qwen2 Series) to ChatTS format
 1. Download the base models (Qwen2 Series) from huggingface
