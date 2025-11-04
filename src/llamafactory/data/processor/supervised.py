@@ -41,7 +41,8 @@ class SupervisedDatasetProcessor(DatasetProcessor):
         audios: list["AudioInput"],
         timeseries: list[Any],
     ) -> tuple[list[int], list[int]]:
-        if timeseries is not None:
+        # print(f"{timeseries=}")
+        if timeseries is not None and len(timeseries) > 0:
             messages = self.template.mm_plugin.process_messages(prompt + response, images, videos, audios, self.processor, timeseries=timeseries)
         else:
             messages = self.template.mm_plugin.process_messages(prompt + response, images, videos, audios, self.processor)
@@ -63,8 +64,14 @@ class SupervisedDatasetProcessor(DatasetProcessor):
             source_len, target_len = infer_seqlen(
                 len(source_ids), len(target_ids), self.data_args.cutoff_len - total_length
             )
-            if source_len < len(source_ids) or target_len < len(target_ids) or len(timeseries) != list(source_ids).count(151665) or list(target_ids).count(151665) != 0:
-                logger.warning_rank0(f"{source_len=}, {target_len=}, {len(timeseries)=}, {list(source_ids).count(151665)=}, {list(source_ids).count(151666)=}, {list(target_ids).count(151665)=}")
+            if 151665 in source_ids:
+                if source_len < len(source_ids) or target_len < len(target_ids) or len(timeseries) != list(source_ids).count(151665) or list(target_ids).count(151665) != 0:
+                    logger.warning_rank0(f"[drop mismatch] {source_len=}, {target_len=}, {len(timeseries)=}, {list(source_ids).count(151665)=}, {list(source_ids).count(151666)=}, {list(target_ids).count(151665)=}")
+                    return None, None
+            elif 151669 in source_ids:
+                if source_len < len(source_ids) or target_len < len(target_ids) or len(timeseries) != list(source_ids).count(151669) or list(target_ids).count(151669) != 0:
+                    logger.warning_rank0(f"[drop mismatch] {source_len=}, {target_len=}, {len(timeseries)=}, {list(source_ids).count(151669)=}, {list(source_ids).count(151670)=}, {list(target_ids).count(151669)=}")
+                    return None, None
             source_ids = source_ids[:source_len]
             target_ids = target_ids[:target_len]
             total_length += source_len + target_len
@@ -115,6 +122,11 @@ class SupervisedDatasetProcessor(DatasetProcessor):
                 audios=examples["_audios"][i] or [],
                 timeseries=examples["_timeseries"][i] or [],
             )
+
+            if input_ids is None or labels is None:
+                logger.warning_rank0("Dropped invalid example due to mismatch between timeseries and special tokens.")
+                continue
+
             model_inputs["input_ids"].append(input_ids)
             model_inputs["attention_mask"].append([1] * len(input_ids))
             model_inputs["labels"].append(labels)

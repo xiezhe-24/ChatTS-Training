@@ -1928,6 +1928,7 @@ PLUGINS = {
     "qwen2_vl": Qwen2VLPlugin,
     "video_llava": VideoLlavaPlugin,
     "chatts": ChatTSPlugin,
+    "qwen3ts": ChatTSPlugin
 }
 
 

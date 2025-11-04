@@ -445,6 +445,15 @@ class FinetuningArguments(
             )
         },
     )
+    timeseries_sft_lr: Optional[float] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Learning rate dedicated to time-series encoders during SFT training. "
+                "Use `None` to fall back to the global learning rate."
+            )
+        },
+    )
     compute_accuracy: bool = field(
         default=False,
         metadata={"help": "Whether or not to compute the token-level accuracy at evaluation."},
@@ -505,6 +514,9 @@ class FinetuningArguments(
 
         if self.pissa_init and (self.stage in ["ppo", "kto"] or self.use_ref_model):
             raise ValueError("Cannot use PiSSA for current training stage.")
+
+        if self.timeseries_sft_lr is not None and self.timeseries_sft_lr <= 0.0:
+            raise ValueError("`timeseries_sft_lr` must be a positive value.")
 
         if self.finetuning_type != "lora":
             if self.loraplus_lr_ratio is not None:

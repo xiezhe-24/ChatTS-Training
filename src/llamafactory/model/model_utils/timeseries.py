@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
 import torch.nn as nn
+from torch.optim import Optimizer
 
 from ...extras import logging
 
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
     from transformers import PreTrainedModel
 
     from ...hparams import FinetuningArguments
+    from torch.optim import Optimizer
 
 logger = logging.get_logger(__name__)
 
@@ -64,6 +66,13 @@ def _register_timeseries_model(
 
 _register_timeseries_model(
     model_type="chatts",
+    encoder_key="ts_encoder",
+    lora_target_prefixes=["ts_encoder.mlp"],
+    modules_to_save=[],
+)
+
+_register_timeseries_model(
+    model_type="qwen3ts",
     encoder_key="ts_encoder",
     lora_target_prefixes=["ts_encoder.mlp"],
     modules_to_save=[],
@@ -145,6 +154,129 @@ def get_timeseries_lora_settings(
         ]
 
     return modules_to_save, target_modules
+
+
+def _attach_parameter_names(model: "PreTrainedModel") -> dict[int, str]:
+    name_map: dict[int, str] = {}
+    for name, param in model.named_parameters():
+        if id(param) not in name_map:
+            name_map[id(param)] = name
+            setattr(param, "_llamafactory_param_name", name)
+    return name_map
+
+
+def _summarize_param_groups(optimizer: Optimizer) -> str:
+    segments = []
+    for idx, group in enumerate(optimizer.param_groups):
+        lr = float(group.get("lr", 0.0) or 0.0)
+        tag = group.get("llamafactory_group", "default")
+        params = group.get("params", [])
+        named_params = [getattr(param, "_llamafactory_param_name", None) for param in params]
+        filtered_names = [name for name in named_params if name]
+        if filtered_names:
+            preview = ",".join(filtered_names[:5])
+        else:
+            preview = "n/a"
+        segments.append(
+            f"group={idx} tag={tag} lr={lr:.8f} params={len(params)} modules=[{preview}]"
+        )
+    return "; ".join(segments) if segments else "<no-param-groups>"
+
+
+def maybe_apply_timeseries_sft_lr(
+    optimizer: Optimizer, model: "PreTrainedModel", finetuning_args: "FinetuningArguments"
+) -> bool:
+    timeseries_lr = getattr(finetuning_args, "timeseries_sft_lr", None)
+    if timeseries_lr is None:
+        return False
+
+    if getattr(optimizer, "_timeseries_lr_overridden", False):
+        return False
+
+    if not getattr(finetuning_args, "train_timeseries_modules", True):
+        logger.warning_rank0(
+            "`timeseries_sft_lr` is set but `train_timeseries_modules` is False; skip applying the override."
+        )
+        setattr(optimizer, "_timeseries_lr_overridden", True)
+        return False
+
+    model_type = getattr(model.config, "model_type", None)
+    if model_type not in TIMESERIES_MODELS:
+        logger.warning_rank0(
+            "`timeseries_sft_lr` is set but no time-series model definition is registered for `%s`.", model_type
+        )
+        setattr(optimizer, "_timeseries_lr_overridden", True)
+        return False
+
+    encoder = TIMESERIES_MODELS[model_type].resolve_encoder(model)
+    if encoder is None:
+        logger.warning_rank0(
+            "Time-series encoder `%s` not found on the current model, cannot override its learning rate.",
+            TIMESERIES_MODELS[model_type].encoder_key,
+        )
+        setattr(optimizer, "_timeseries_lr_overridden", True)
+        return False
+
+    _attach_parameter_names(model)
+    for group in optimizer.param_groups:
+        group.setdefault("llamafactory_group", "default")
+    ts_params = [param for param in encoder.parameters() if param.requires_grad]
+    if not ts_params:
+        logger.info_rank0("No trainable parameters found in the time-series encoder, skip LR override.")
+        setattr(optimizer, "_timeseries_lr_overridden", True)
+        return False
+
+    ts_param_ids = {id(param) for param in ts_params}
+    applied = 0
+    for group in list(optimizer.param_groups):  # copy to avoid iterating newly added groups
+        ts_group_params = [param for param in group["params"] if id(param) in ts_param_ids]
+        if not ts_group_params:
+            continue
+
+        remaining_params = [param for param in group["params"] if id(param) not in ts_param_ids]
+        group_options = {key: value for key, value in group.items() if key != "params"}
+
+        if remaining_params:
+            group["params"] = remaining_params
+        else:
+            optimizer.param_groups.remove(group)
+
+        new_group = dict(group_options)
+        if "initial_lr" in new_group:
+            new_group["initial_lr"] = timeseries_lr
+        new_group["lr"] = timeseries_lr
+        new_group["params"] = ts_group_params
+        new_group["llamafactory_group"] = "timeseries"
+        optimizer.add_param_group(new_group)
+        applied += len(ts_group_params)
+
+    if applied == 0:
+        logger.info_rank0("No optimizer parameters matched the time-series encoder, skip LR override.")
+        setattr(optimizer, "_timeseries_lr_overridden", True)
+        return False
+
+    setattr(optimizer, "_timeseries_lr_overridden", True)
+    logger.info_rank0(
+        "Applied SFT learning rate %.6f to %d time-series encoder parameter(s).",
+        timeseries_lr,
+        applied,
+    )
+    logger.info_rank0(
+        "[OPTIMIZER] Optimizer param-group layout after TS LR override: %s",
+        _summarize_param_groups(optimizer),
+    )
+    return True
+
+def get_timeseries_learning_rate(optimizer: Optional[Optimizer]) -> Optional[float]:
+    if optimizer is None:
+        return None
+    for group in optimizer.param_groups:
+        if group.get("llamafactory_group") == "timeseries":
+            lr = group.get("lr")
+            if lr is None:
+                return None
+            return float(lr)
+    return None
 
 
 def patch_timeseries_modules_for_lora(

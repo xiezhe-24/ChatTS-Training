@@ -28,6 +28,7 @@ from typing_extensions import override
 from ...extras import logging
 from ...extras.constants import IGNORE_INDEX
 from ...extras.packages import is_transformers_version_greater_than
+from ...model.model_utils.timeseries import get_timeseries_learning_rate, maybe_apply_timeseries_sft_lr
 from ..callbacks import SaveProcessorCallback
 from ..trainer_utils import create_custom_optimizer, create_custom_scheduler
 
@@ -82,7 +83,18 @@ class CustomSeq2SeqTrainer(Seq2SeqTrainer):
     def create_optimizer(self) -> "torch.optim.Optimizer":
         if self.optimizer is None:
             self.optimizer = create_custom_optimizer(self.model, self.args, self.finetuning_args)
-        return super().create_optimizer()
+        optimizer = super().create_optimizer()
+        if optimizer is not None:
+            maybe_apply_timeseries_sft_lr(optimizer, self.model, self.finetuning_args)
+        return optimizer
+
+    @override
+    def log(self, logs: dict[str, Any], *args, **kwargs) -> None:
+        if logs is not None and getattr(self.finetuning_args, "timeseries_sft_lr", None) is not None:
+            ts_lr = get_timeseries_learning_rate(getattr(self, "optimizer", None))
+            if ts_lr is not None and "ts_encoder_learning_rate" not in logs:
+                logs["ts_encoder_learning_rate"] = ts_lr
+        super().log(logs, *args, **kwargs)
 
     @override
     def create_scheduler(

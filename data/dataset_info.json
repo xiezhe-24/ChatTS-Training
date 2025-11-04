@@ -6,5 +6,37 @@
             "response": "output",
             "timeseries": "timeseries"
         }
+    },
+    "align_256": {
+        "file_name": "align_256/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        }
+    },
+    "align_random": {
+        "file_name": "align_random/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        }
+    },
+    "ift": {
+        "file_name": "ift/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        }
+    },
+    "sft": {
+        "file_name": "sft/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        }
     }
 }
