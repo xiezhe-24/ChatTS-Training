@@ -11,9 +11,9 @@ This is a modified version of [LLaMA-Factory](https://github.com/hiyouga/LLaMA-F
 Following the steps in [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory).
 Make sure that `flash-attention` and `DeepSpeed` are installed.
 
-## Instructions for converting base models (Qwen2 Series) to ChatTS format
-1. Download the base models (Qwen2 Series) from huggingface
-2. Replace `*.py`, `added_tokens.json`, `config.json`, `special_tokens_map.json`, `tokenizer_config.json` in the base model folder with the files in the ChatTS's model (https://huggingface.co/bytedance-research/ChatTS-14B) folder.
+## Instructions for converting Qwen base models to ChatTS format
+1. Download the base models ([Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B) or [Qwen2.5-14B-Instruct](https://huggingface.co/Qwen/Qwen2.5-14B-Instruct)) from huggingface
+2. Replace `*.py`, `added_tokens.json`, `config.json`, `special_tokens_map.json`, `tokenizer_config.json` in the base model folder with the files in the[ChatTS-8B](https://huggingface.co/bytedance-research/ChatTS-8B) or [ChatTS-14B](https://huggingface.co/bytedance-research/ChatTS-14B) repo according to type of your base model.
 3. **Initialization:** To ensure training stability, we strongly recommend using Xavier normal initialization for the parameters of `ts_encoder`. You can first load the model created in the previous steps using `AutoModelForCausalLM.from_pretrained` in Python, then apply Xavier normal initialization to the `model.ts_encoder` part, and finally save the model using `save_pretrained`. For detailed API usage, please refer to the [official Transformers documentation](https://huggingface.co/docs/transformers/en/index).
 
 
