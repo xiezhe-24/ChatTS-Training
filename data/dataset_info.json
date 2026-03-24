@@ -1,6 +1,6 @@
 {
     "chatts_dev": {
-        "file_name": "chatts_dev.jsonl",
+        "file_name": "data/chatts_dev.jsonl",
         "columns": {
             "prompt": "input",
             "response": "output",
@@ -8,7 +8,7 @@
         }
     },
     "align_256": {
-        "file_name": "align_256/train.jsonl",
+        "file_name": "data/align_random/train.jsonl",
         "columns": {
             "prompt": "input",
             "response": "output",
@@ -16,7 +16,7 @@
         }
     },
     "align_random": {
-        "file_name": "align_random/train.jsonl",
+        "file_name": "data/align_random/train.jsonl",
         "columns": {
             "prompt": "input",
             "response": "output",
@@ -24,7 +24,7 @@
         }
     },
     "ift": {
-        "file_name": "ift/train.jsonl",
+        "file_name": "data/ift/train.jsonl",
         "columns": {
             "prompt": "input",
             "response": "output",
@@ -32,11 +32,209 @@
         }
     },
     "sft": {
-        "file_name": "sft/train.jsonl",
+        "file_name": "data/sft/train.jsonl",
         "columns": {
             "prompt": "input",
             "response": "output",
             "timeseries": "timeseries"
         }
+    },
+    "spike_task_train": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/atomic/spike_task/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "spike_task_test": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/atomic/spike_task/test.json",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "comparison_task_train": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/molecular/comparison_task/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "comparison_task_test": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/molecular/comparison_task/test.json",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "segment_task_train": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/molecular/segment_task/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "segment_task_test": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/molecular/segment_task/test.json",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "relative_task_train": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/molecular/relative_task/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "relative_task_test": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/molecular/relative_task/test.json",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "anomaly_detection_task_train": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/composite/anomaly_detection_task/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "anomaly_detection_task_test": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/composite/anomaly_detection_task/test.json",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "root_cause_analysis_task_train": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/composite/root_cause_analysis_task/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "root_cause_analysis_task_test": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/composite/root_cause_analysis_task/test.json",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "describe_task_train": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/composite/describe_task/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "describe_task_test": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/composite/describe_task/test.json",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "ift_task_train": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/composite/ift_task/train.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "ift_task_test": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/composite/ift_task/test.json",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "atomic_merged": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/atomic/atomic.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "molecular_merged": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/molecular/molecular.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "composite_merged": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_different_tasks_polished/composite/composite.jsonl",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "Async timeseries benchmark; true concurrency controlled by asyncio semaphore"
+    },
+    "generated_timeseries_bench_plus_polished": {
+        "file_name": "/zzr/data/timeeval_train/generate_data/generated_timeseries_bench_plus_polished/0K.jsonl",
+        "columns": {
+            "prompt": "polished_question",
+            "response": "polished_answer",
+            "timeseries": "timeseries"
+        },
+        "description": "在模型output中添加了多个变点"
+    },
+    "multi_query_zh": {
+        "file_name": "/mnt/home/scripts/ChatTS-Training/data/data/base_skill/multi_query_zh.json",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "多轮查询中文数据集，包含多个查询和响应对，适用于训练模型处理多轮对话和复杂查询的能力"
+    },
+    "multi_query_domain_en": {
+        "file_name": "/mnt/home/scripts/ChatTS-Training/data/data/base_skill/ts_qa_datasets_gpt5-mini-multi-domain-en_train.json",
+        "columns": {
+            "prompt": "input",
+            "response": "output",
+            "timeseries": "timeseries"
+        },
+        "description": "多轮查询英文数据集，包含多个查询和响应对，适用于训练模型处理多轮对话和复杂查询的能力，涵盖多个领域"
     }
 }
